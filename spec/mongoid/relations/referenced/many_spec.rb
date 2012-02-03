@@ -50,7 +50,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when appending in a parent create block" do
 
           let!(:post) do
-            Post.create(:title => "testing")
+            Post.create(title: "testing")
           end
 
           let!(:person) do
@@ -117,7 +117,7 @@ describe Mongoid::Relations::Referenced::Many do
           context "when documents already exist on the relation" do
 
             let(:post_two) do
-              Post.new(:title => "Test")
+              Post.new(title: "Test")
             end
 
             before do
@@ -191,7 +191,7 @@ describe Mongoid::Relations::Referenced::Many do
           it "raises an error" do
             expect {
               person.posts.safely.send(method, post)
-            }.to raise_error(Mongo::OperationFailure)
+            }.to raise_error(Moped::Errors::OperationFailure)
           end
         end
       end
@@ -398,7 +398,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when replacing the with a combination of old and new docs" do
 
           let(:new_post) do
-            Post.create(:title => "new post")
+            Post.create(title: "new post")
           end
 
           context "when using the same in memory instance" do
@@ -447,7 +447,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when replacing the with a combination of only new docs" do
 
           let(:new_post) do
-            Post.create(:title => "new post")
+            Post.create(title: "new post")
           end
 
           context "when using the same in memory instance" do
@@ -622,7 +622,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when dependent is not destructive" do
 
           let(:drug) do
-            Drug.new(:name => "Oxycodone")
+            Drug.new(name: "Oxycodone")
           end
 
           before do
@@ -716,28 +716,33 @@ describe Mongoid::Relations::Referenced::Many do
     end
   end
 
-  describe "#_ids=" do
+  describe "#\{name}_ids=" do
+
     let(:person) do
       Person.new
     end
 
-    let(:post1) do
+    let(:post_one) do
       Post.create
     end
 
-    let(:post2) do
+    let(:post_two) do
       Post.create
+    end
+
+    before do
+      person.post_ids = [ post_one.id, post_two.id ]
     end
 
     it "calls setter with documents find by given ids" do
-      person.expects(:posts=).with([post1, post2])
-      person.post_ids = [post1.id, post2.id]
+      person.posts.should eq([ post_one, post_two ])
     end
   end
 
-  describe "#_ids" do
+  describe "#\{name}_ids" do
+
     let(:posts) do
-      [Post.create, Post.create]
+      [ Post.create, Post.create ]
     end
 
     let(:person) do
@@ -746,33 +751,6 @@ describe Mongoid::Relations::Referenced::Many do
 
     it "returns ids of documents that are in the relation" do
       person.post_ids.should eq(posts.map(&:id))
-    end
-  end
-
-  describe "#avg" do
-
-    let(:person) do
-      Person.create
-    end
-
-    let(:post_one) do
-      Post.create(:rating => 5)
-    end
-
-    let(:post_two) do
-      Post.create(:rating => 10)
-    end
-
-    before do
-      person.posts.push(post_one, post_two)
-    end
-
-    let(:avg) do
-      person.posts.avg(:rating)
-    end
-
-    it "returns the average value of the supplied field" do
-      avg.should eq(7.5)
     end
   end
 
@@ -789,7 +767,7 @@ describe Mongoid::Relations::Referenced::Many do
         let(:drug) do
           person.drugs.send(
             method,
-            { :name => "Oxycontin", :generic => false }, :as => :admin
+            { name: "Oxycontin", generic: false }, as: :admin
           )
         end
 
@@ -811,7 +789,7 @@ describe Mongoid::Relations::Referenced::Many do
           end
 
           let!(:post) do
-            person.posts.send(method, :title => "$$$")
+            person.posts.send(method, title: "$$$")
           end
 
           it "sets the foreign key on the relation" do
@@ -846,7 +824,7 @@ describe Mongoid::Relations::Referenced::Many do
           end
 
           let!(:post) do
-            person.posts.send(method, :text => "Testing")
+            person.posts.send(method, text: "Testing")
           end
 
           it "sets the foreign key on the relation" do
@@ -880,7 +858,7 @@ describe Mongoid::Relations::Referenced::Many do
           end
 
           let!(:rating) do
-            movie.ratings.send(method, :value => 3)
+            movie.ratings.send(method, value: 3)
           end
 
           it "sets the foreign key on the relation" do
@@ -915,7 +893,7 @@ describe Mongoid::Relations::Referenced::Many do
           end
 
           let!(:rating) do
-            movie.ratings.send(method, :value => 4)
+            movie.ratings.send(method, value: 4)
           end
 
           it "sets the foreign key on the relation" do
@@ -953,7 +931,7 @@ describe Mongoid::Relations::Referenced::Many do
     end
 
     let(:metadata) do
-      stub(:extension? => false)
+      stub(extension?: false)
     end
 
     it "returns the embedded in builder" do
@@ -975,7 +953,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the children are persisted" do
 
           let!(:post) do
-            person.posts.create(:title => "Testing")
+            person.posts.create(title: "Testing")
           end
 
           let!(:relation) do
@@ -1002,7 +980,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the children are not persisted" do
 
           let!(:post) do
-            person.posts.build(:title => "Testing")
+            person.posts.build(title: "Testing")
           end
 
           let!(:relation) do
@@ -1022,7 +1000,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let!(:post) do
-          person.posts.build(:title => "Testing")
+          person.posts.build(title: "Testing")
         end
 
         let!(:relation) do
@@ -1046,7 +1024,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the children are persisted" do
 
           let!(:rating) do
-            movie.ratings.create(:value => 1)
+            movie.ratings.create(value: 1)
           end
 
           let!(:relation) do
@@ -1073,7 +1051,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the children are not persisted" do
 
           let!(:rating) do
-            movie.ratings.build(:value => 3)
+            movie.ratings.build(value: 3)
           end
 
           let!(:relation) do
@@ -1093,7 +1071,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let!(:rating) do
-          movie.ratings.build(:value => 2)
+          movie.ratings.build(value: 2)
         end
 
         let!(:relation) do
@@ -1149,7 +1127,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when appending in a parent create block" do
 
         let!(:post) do
-          Post.create(:title => "testing")
+          Post.create(title: "testing")
         end
 
         let!(:person) do
@@ -1216,7 +1194,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when documents already exist on the relation" do
 
           let(:post_two) do
-            Post.new(:title => "Test")
+            Post.new(title: "Test")
           end
 
           before do
@@ -1359,7 +1337,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when documents have been persisted" do
 
       let!(:rating) do
-        movie.ratings.create(:value => 1)
+        movie.ratings.create(value: 1)
       end
 
       it "returns the number of persisted documents" do
@@ -1370,7 +1348,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when documents have not been persisted" do
 
       let!(:rating) do
-        movie.ratings.build(:value => 1)
+        movie.ratings.build(value: 1)
       end
 
       it "returns 0" do
@@ -1383,7 +1361,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the documents are part of the relation" do
 
         before do
-          Rating.create(:ratable => movie)
+          Rating.create(ratable: movie)
         end
 
         it "returns the count from the db" do
@@ -1414,7 +1392,7 @@ describe Mongoid::Relations::Referenced::Many do
 
       let(:drug) do
         person.drugs.create(
-          { :name => "Oxycontin", :generic => false }, :as => :admin
+          { name: "Oxycontin", generic: false }, as: :admin
         )
       end
 
@@ -1436,7 +1414,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let(:post) do
-          person.posts.create(:text => "Testing")
+          person.posts.create(text: "Testing")
         end
 
         it "raises an unsaved document error" do
@@ -1453,7 +1431,7 @@ describe Mongoid::Relations::Referenced::Many do
           end
 
           let!(:post) do
-            person.posts.safely.create(:text => "Testing")
+            person.posts.safely.create(text: "Testing")
           end
 
           it "creates the document" do
@@ -1476,7 +1454,7 @@ describe Mongoid::Relations::Referenced::Many do
               person.posts.safely.create do |doc|
                 doc._id = existing.id
               end
-            }.to raise_error(Mongo::OperationFailure)
+            }.to raise_error(Moped::Errors::OperationFailure)
           end
         end
       end
@@ -1488,7 +1466,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let!(:post) do
-          person.posts.create(:text => "Testing") do |post|
+          person.posts.create(text: "Testing") do |post|
             post.content = "The Content"
           end
         end
@@ -1528,7 +1506,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let(:rating) do
-          movie.ratings.create(:value => 1)
+          movie.ratings.create(value: 1)
         end
 
         it "raises an unsaved document error" do
@@ -1543,7 +1521,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let!(:rating) do
-          movie.ratings.create(:value => 3)
+          movie.ratings.create(value: 3)
         end
 
         it "sets the foreign key on the relation" do
@@ -1579,7 +1557,7 @@ describe Mongoid::Relations::Referenced::Many do
 
       let(:drug) do
         person.drugs.create!(
-          { :name => "Oxycontin", :generic => false }, :as => :admin
+          { name: "Oxycontin", generic: false }, as: :admin
         )
       end
 
@@ -1601,7 +1579,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let(:post) do
-          person.posts.create!(:title => "Testing")
+          person.posts.create!(title: "Testing")
         end
 
         it "raises an unsaved document error" do
@@ -1616,7 +1594,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let!(:post) do
-          person.posts.create!(:title => "Testing")
+          person.posts.create!(title: "Testing")
         end
 
         it "sets the foreign key on the relation" do
@@ -1643,7 +1621,7 @@ describe Mongoid::Relations::Referenced::Many do
 
           it "raises an error" do
             expect {
-              person.posts.create!(:title => "$$$")
+              person.posts.create!(title: "$$$")
             }.to raise_error(Mongoid::Errors::Validations)
           end
         end
@@ -1659,7 +1637,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let(:rating) do
-          movie.ratings.create!(:value => 1)
+          movie.ratings.create!(value: 1)
         end
 
         it "raises an unsaved document error" do
@@ -1674,7 +1652,7 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         let!(:rating) do
-          movie.ratings.create!(:value => 4)
+          movie.ratings.create!(value: 4)
         end
 
         it "sets the foreign key on the relation" do
@@ -1701,7 +1679,7 @@ describe Mongoid::Relations::Referenced::Many do
 
           it "raises an error" do
             expect {
-              movie.ratings.create!(:value => 1000)
+              movie.ratings.create!(value: 1000)
             }.to raise_error(Mongoid::Errors::Validations)
           end
         end
@@ -1788,7 +1766,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the document is not loaded" do
 
           let!(:drug) do
-            Drug.create(:person_id => person.id)
+            Drug.create(person_id: person.id)
           end
 
           let!(:deleted) do
@@ -1814,7 +1792,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the document is loaded" do
 
           let!(:post) do
-            person.posts.create(:title => "test")
+            person.posts.create(title: "test")
           end
 
           let!(:deleted) do
@@ -1837,7 +1815,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the document is not loaded" do
 
           let!(:post) do
-            Post.create(:title => "foo", :person_id => person.id)
+            Post.create(title: "foo", person_id: person.id)
           end
 
           let!(:deleted) do
@@ -1862,7 +1840,7 @@ describe Mongoid::Relations::Referenced::Many do
     context "when the document is not found" do
 
       let!(:post) do
-        Post.create(:title => "foo")
+        Post.create(title: "foo")
       end
 
       let!(:deleted) do
@@ -1892,22 +1870,22 @@ describe Mongoid::Relations::Referenced::Many do
           end
 
           before do
-            person.posts.create(:title => "Testing")
-            person.posts.create(:title => "Test")
+            person.posts.create(title: "Testing")
+            person.posts.create(title: "Test")
           end
 
           it "removes the correct posts" do
-            person.posts.send(method, :conditions => { :title => "Testing" })
+            person.posts.send(method, conditions: { title: "Testing" })
             person.posts.count.should eq(1)
           end
 
           it "deletes the documents from the database" do
-            person.posts.send(method, :conditions => {:title => "Testing" })
-            Post.where(:title => "Testing").count.should eq(0)
+            person.posts.send(method, conditions: {title: "Testing" })
+            Post.where(title: "Testing").count.should eq(0)
           end
 
           it "returns the number of documents deleted" do
-            person.posts.send(method, :conditions => { :title => "Testing" }).should eq(1)
+            person.posts.send(method, conditions: { title: "Testing" }).should eq(1)
           end
         end
 
@@ -1918,8 +1896,8 @@ describe Mongoid::Relations::Referenced::Many do
           end
 
           before do
-            person.posts.create(:title => "Testing")
-            person.posts.create(:title => "Test")
+            person.posts.create(title: "Testing")
+            person.posts.create(title: "Test")
           end
 
           it "removes the correct posts" do
@@ -1929,7 +1907,7 @@ describe Mongoid::Relations::Referenced::Many do
 
           it "deletes the documents from the database" do
             person.posts.send(method)
-            Post.where(:title => "Testing").count.should eq(0)
+            Post.where(title: "Testing").count.should eq(0)
           end
 
           it "returns the number of documents deleted" do
@@ -1943,38 +1921,38 @@ describe Mongoid::Relations::Referenced::Many do
         context "when conditions are provided" do
 
           let(:movie) do
-            Movie.create(:title => "Bladerunner")
+            Movie.create(title: "Bladerunner")
           end
 
           before do
-            movie.ratings.create(:value => 1)
-            movie.ratings.create(:value => 2)
+            movie.ratings.create(value: 1)
+            movie.ratings.create(value: 2)
           end
 
           it "removes the correct ratings" do
-            movie.ratings.send(method, :conditions => { :value => 1 })
+            movie.ratings.send(method, conditions: { value: 1 })
             movie.ratings.count.should eq(1)
           end
 
           it "deletes the documents from the database" do
-            movie.ratings.send(method, :conditions => { :value => 1 })
-            Rating.where(:value => 1).count.should eq(0)
+            movie.ratings.send(method, conditions: { value: 1 })
+            Rating.where(value: 1).count.should eq(0)
           end
 
           it "returns the number of documents deleted" do
-            movie.ratings.send(method, :conditions => { :value => 1 }).should eq(1)
+            movie.ratings.send(method, conditions: { value: 1 }).should eq(1)
           end
         end
 
         context "when conditions are not provided" do
 
           let(:movie) do
-            Movie.create(:title => "Bladerunner")
+            Movie.create(title: "Bladerunner")
           end
 
           before do
-            movie.ratings.create(:value => 1)
-            movie.ratings.create(:value => 2)
+            movie.ratings.create(value: 1)
+            movie.ratings.create(value: 2)
           end
 
           it "removes the correct ratings" do
@@ -1984,7 +1962,7 @@ describe Mongoid::Relations::Referenced::Many do
 
           it "deletes the documents from the database" do
             movie.ratings.send(method)
-            Rating.where(:value => 1).count.should eq(0)
+            Rating.where(value: 1).count.should eq(0)
           end
 
           it "returns the number of documents deleted" do
@@ -2012,7 +1990,7 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:post) do
-        person.posts.create(:title => "testing")
+        person.posts.create(title: "testing")
       end
 
       let(:metadata) do
@@ -2027,10 +2005,6 @@ describe Mongoid::Relations::Referenced::Many do
         Mongoid::IdentityMap.get(Post, "person_id" => person.id)
       end
 
-      it "returns the appropriate criteria" do
-        eager.selector.should eq({ "person_id" => { "$in" => [ person.id ] }})
-      end
-
       it "puts the documents in the identity map" do
         map.should eq([ post ])
       end
@@ -2039,19 +2013,19 @@ describe Mongoid::Relations::Referenced::Many do
     context "when the relation is polymorphic" do
 
       let!(:movie) do
-        Movie.create(:name => "Bladerunner")
+        Movie.create(name: "Bladerunner")
       end
 
       let!(:book) do
-        Book.create(:name => "Game of Thrones")
+        Book.create(name: "Game of Thrones")
       end
 
       let!(:movie_rating) do
-        movie.ratings.create(:value => 10)
+        movie.ratings.create(value: 10)
       end
 
       let!(:book_rating) do
-        book.create_rating(:value => 10)
+        book.create_rating(value: 10)
       end
 
       let(:metadata) do
@@ -2064,10 +2038,6 @@ describe Mongoid::Relations::Referenced::Many do
 
       let(:map) do
         Mongoid::IdentityMap.get(Rating, "ratable_id" => movie.id)
-      end
-
-      it "returns the appropriate criteria" do
-        eager.selector.should eq({ "ratable_id" => { "$in" => [ movie.id ] }})
       end
 
       it "puts the documents in the identity map" do
@@ -2131,13 +2101,13 @@ describe Mongoid::Relations::Referenced::Many do
         end
 
         before do
-          person.posts.create(:title => "Test")
+          person.posts.create(title: "Test")
         end
 
         context "when the document does not belong to the relation" do
 
           let!(:post) do
-            Post.create(:title => "testing")
+            Post.create(title: "testing")
           end
 
           it "raises an error" do
@@ -2156,11 +2126,11 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:post_one) do
-        person.posts.create(:title => "Test")
+        person.posts.create(title: "Test")
       end
 
       let!(:post_two) do
-        person.posts.create(:title => "OMG I has relations")
+        person.posts.create(title: "OMG I has relations")
       end
 
       context "when providing an id" do
@@ -2179,7 +2149,7 @@ describe Mongoid::Relations::Referenced::Many do
         context "when the id matches but is not scoped to the relation" do
 
           let(:post) do
-            Post.create(:title => "Unscoped")
+            Post.create(title: "Unscoped")
           end
 
           it "raises an error" do
@@ -2282,11 +2252,11 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:rating_one) do
-        movie.ratings.create(:value => 1)
+        movie.ratings.create(value: 1)
       end
 
       let!(:rating_two) do
-        movie.ratings.create(:value => 5)
+        movie.ratings.create(value: 5)
       end
 
       context "when providing an id" do
@@ -2398,13 +2368,13 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:post) do
-        person.posts.create(:title => "Testing")
+        person.posts.create(title: "Testing")
       end
 
       context "when the document exists" do
 
         let(:found) do
-          person.posts.find_or_create_by(:title => "Testing")
+          person.posts.find_or_create_by(title: "Testing")
         end
 
         it "returns the document" do
@@ -2415,7 +2385,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the document does not exist" do
 
         let(:found) do
-          person.posts.find_or_create_by(:title => "Test") do |post|
+          person.posts.find_or_create_by(title: "Test") do |post|
             post.content = "The Content"
           end
         end
@@ -2441,13 +2411,13 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:rating) do
-        movie.ratings.create(:value => 1)
+        movie.ratings.create(value: 1)
       end
 
       context "when the document exists" do
 
         let(:found) do
-          movie.ratings.find_or_create_by(:value => 1)
+          movie.ratings.find_or_create_by(value: 1)
         end
 
         it "returns the document" do
@@ -2458,7 +2428,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the document does not exist" do
 
         let(:found) do
-          movie.ratings.find_or_create_by(:value => 3)
+          movie.ratings.find_or_create_by(value: 3)
         end
 
         it "sets the new document attributes" do
@@ -2481,13 +2451,13 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:post) do
-        person.posts.create(:title => "Testing")
+        person.posts.create(title: "Testing")
       end
 
       context "when the document exists" do
 
         let(:found) do
-          person.posts.find_or_initialize_by(:title => "Testing")
+          person.posts.find_or_initialize_by(title: "Testing")
         end
 
         it "returns the document" do
@@ -2498,7 +2468,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the document does not exist" do
 
         let(:found) do
-          person.posts.find_or_initialize_by(:title => "Test") do |post|
+          person.posts.find_or_initialize_by(title: "Test") do |post|
             post.content = "The Content"
           end
         end
@@ -2524,13 +2494,13 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:rating) do
-        movie.ratings.create(:value => 1)
+        movie.ratings.create(value: 1)
       end
 
       context "when the document exists" do
 
         let(:found) do
-          movie.ratings.find_or_initialize_by(:value => 1)
+          movie.ratings.find_or_initialize_by(value: 1)
         end
 
         it "returns the document" do
@@ -2541,7 +2511,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when the document does not exist" do
 
         let(:found) do
-          movie.ratings.find_or_initialize_by(:value => 3)
+          movie.ratings.find_or_initialize_by(value: 3)
         end
 
         it "sets the new document attributes" do
@@ -2592,11 +2562,11 @@ describe Mongoid::Relations::Referenced::Many do
     end
 
     let(:post_one) do
-      Post.create(:rating => 5)
+      Post.create(rating: 5)
     end
 
     let(:post_two) do
-      Post.create(:rating => 10)
+      Post.create(rating: 10)
     end
 
     before do
@@ -2604,11 +2574,40 @@ describe Mongoid::Relations::Referenced::Many do
     end
 
     let(:max) do
-      person.posts.max(:rating)
+      person.posts.max do |a,b|
+        a.rating <=> b.rating
+      end
     end
 
-    it "returns the max value of the supplied field" do
-      max.should eq(10)
+    it "returns the document with the max value of the supplied field" do
+      max.should eq(post_two)
+    end
+  end
+
+  describe "#max_by" do
+
+    let(:person) do
+      Person.create
+    end
+
+    let(:post_one) do
+      Post.create(rating: 5)
+    end
+
+    let(:post_two) do
+      Post.create(rating: 10)
+    end
+
+    before do
+      person.posts.push(post_one, post_two)
+    end
+
+    let(:max) do
+      person.posts.max_by(&:rating)
+    end
+
+    it "returns the document with the max value of the supplied field" do
+      max.should eq(post_two)
     end
   end
 
@@ -2619,17 +2618,17 @@ describe Mongoid::Relations::Referenced::Many do
     end
 
     let!(:post_one) do
-      person.posts.create(:title => "First", :content => "Posting")
+      person.posts.create(title: "First", content: "Posting")
     end
 
     let!(:post_two) do
-      person.posts.create(:title => "Second", :content => "Testing")
+      person.posts.create(title: "Second", content: "Testing")
     end
 
     context "when providing a single criteria" do
 
       let(:posts) do
-        person.posts.where(:title => "First")
+        person.posts.where(title: "First")
       end
 
       it "applies the criteria to the documents" do
@@ -2677,11 +2676,11 @@ describe Mongoid::Relations::Referenced::Many do
     end
 
     let(:post_one) do
-      Post.create(:rating => 5)
+      Post.create(rating: 5)
     end
 
     let(:post_two) do
-      Post.create(:rating => 10)
+      Post.create(rating: 10)
     end
 
     before do
@@ -2689,11 +2688,40 @@ describe Mongoid::Relations::Referenced::Many do
     end
 
     let(:min) do
-      person.posts.min(:rating)
+      person.posts.min do |a, b|
+        a.rating <=> b.rating
+      end
     end
 
     it "returns the min value of the supplied field" do
-      min.should eq(5)
+      min.should eq(post_one)
+    end
+  end
+
+  describe "#min_by" do
+
+    let(:person) do
+      Person.create
+    end
+
+    let(:post_one) do
+      Post.create(rating: 5)
+    end
+
+    let(:post_two) do
+      Post.create(rating: 10)
+    end
+
+    before do
+      person.posts.push(post_one, post_two)
+    end
+
+    let(:min) do
+      person.posts.min_by(&:rating)
+    end
+
+    it "returns the min value of the supplied field" do
+      min.should eq(post_one)
     end
   end
 
@@ -2706,11 +2734,11 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:post_one) do
-        person.posts.create(:title => "One")
+        person.posts.create(title: "One")
       end
 
       let!(:post_two) do
-        person.posts.create(:title => "Two")
+        person.posts.create(title: "Two")
       end
 
       let(:from_db) do
@@ -2743,11 +2771,11 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:post_one) do
-        person.posts.create(:title => "One")
+        person.posts.create(title: "One")
       end
 
       let!(:post_two) do
-        person.posts.create(:title => "Two")
+        person.posts.create(title: "Two")
       end
 
       before do
@@ -2774,15 +2802,15 @@ describe Mongoid::Relations::Referenced::Many do
     context "when the relation is polymorphic" do
 
       let(:movie) do
-        Movie.create(:title => "Oldboy")
+        Movie.create(title: "Oldboy")
       end
 
       let!(:rating_one) do
-        movie.ratings.create(:value => 10)
+        movie.ratings.create(value: 10)
       end
 
       let!(:rating_two) do
-        movie.ratings.create(:value => 9)
+        movie.ratings.create(value: 9)
       end
 
       before do
@@ -2851,33 +2879,6 @@ describe Mongoid::Relations::Referenced::Many do
     end
   end
 
-  describe "#sum" do
-
-    let(:person) do
-      Person.create
-    end
-
-    let(:post_one) do
-      Post.create(:rating => 5)
-    end
-
-    let(:post_two) do
-      Post.create(:rating => 10)
-    end
-
-    before do
-      person.posts.push(post_one, post_two)
-    end
-
-    let(:sum) do
-      person.posts.sum(:rating)
-    end
-
-    it "returns the sum values of the supplied field" do
-      sum.should eq(15)
-    end
-  end
-
   describe "#scoped" do
 
     let(:person) do
@@ -2908,7 +2909,7 @@ describe Mongoid::Relations::Referenced::Many do
       context "when documents have been persisted" do
 
         let!(:rating) do
-          movie.ratings.create(:value => 1)
+          movie.ratings.create(value: 1)
         end
 
         it "returns 1" do
@@ -2919,8 +2920,8 @@ describe Mongoid::Relations::Referenced::Many do
       context "when documents have not been persisted" do
 
         before do
-          movie.ratings.build(:value => 1)
-          movie.ratings.create(:value => 2)
+          movie.ratings.build(value: 1)
+          movie.ratings.create(value: 2)
         end
 
         it "returns the total number of documents" do
@@ -2939,11 +2940,11 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:post_one) do
-        person.posts.create(:title => "first")
+        person.posts.create(title: "first")
       end
 
       let!(:post_two) do
-        Post.create(:title => "second")
+        Post.create(title: "second")
       end
 
       let(:unscoped) do
@@ -2962,11 +2963,11 @@ describe Mongoid::Relations::Referenced::Many do
       end
 
       let!(:acolyte_one) do
-        church.acolytes.create(:name => "first")
+        church.acolytes.create(name: "first")
       end
 
       let!(:acolyte_two) do
-        Acolyte.create(:name => "second")
+        Acolyte.create(name: "second")
       end
 
       let(:unscoped) do
@@ -3006,15 +3007,15 @@ describe Mongoid::Relations::Referenced::Many do
     end
 
     let(:post_one) do
-      OrderedPost.create(:rating => 10, :title => '1')
+      OrderedPost.create(rating: 10, title: '1')
     end
 
     let(:post_two) do
-      OrderedPost.create(:rating => 20, :title => '2')
+      OrderedPost.create(rating: 20, title: '2')
     end
 
     let(:post_three) do
-      OrderedPost.create(:rating => 20, :title => '3')
+      OrderedPost.create(rating: 20, title: '3')
     end
 
     before do
@@ -3042,11 +3043,11 @@ describe Mongoid::Relations::Referenced::Many do
     end
 
     let!(:post_one) do
-      Post.create(:title => "one")
+      Post.create(title: "one")
     end
 
     let!(:post_two) do
-      Post.create(:title => "two")
+      Post.create(title: "two")
     end
 
     before do
@@ -3056,9 +3057,8 @@ describe Mongoid::Relations::Referenced::Many do
     context "when the relation references the same documents" do
 
       before do
-        Post.collection.update(
-          { :_id => post_one.id }, { "$set" => { :title => "reloaded" }}
-        )
+        Post.collection.find({ _id: post_one.id }).
+          update({ "$set" => { title: "reloaded" }})
       end
 
       let(:reloaded) do

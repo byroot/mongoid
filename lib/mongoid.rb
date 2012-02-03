@@ -20,15 +20,15 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-require "delegate"
-require "time"
 require "active_support/core_ext"
 require 'active_support/json'
 require "active_support/inflector"
-require "active_support/lazy_load_hooks"
 require "active_support/time_with_zone"
 require "active_model"
-require "mongo"
+
+require "moped"
+BSON = Moped::BSON
+
 require "mongoid/extensions"
 require "mongoid/errors"
 require "mongoid/safety"
@@ -37,16 +37,12 @@ require "mongoid/relations"
 require "mongoid/atomic"
 require "mongoid/attributes"
 require "mongoid/callbacks"
-require "mongoid/collection"
-require "mongoid/collections"
 require "mongoid/config"
-require "mongoid/contexts"
+require "mongoid/contextual"
 require "mongoid/copyable"
 require "mongoid/criteria"
-require "mongoid/cursor"
 require "mongoid/default_scope"
 require "mongoid/dirty"
-require "mongoid/extras"
 require "mongoid/factory"
 require "mongoid/fields"
 require "mongoid/finders"
@@ -67,6 +63,7 @@ require "mongoid/persistence"
 require "mongoid/reloading"
 require "mongoid/scope"
 require "mongoid/serialization"
+require "mongoid/sessions"
 require "mongoid/sharding"
 require "mongoid/state"
 require "mongoid/timestamps"
@@ -102,10 +99,8 @@ module Mongoid #:nodoc
   #
   # @example Set up configuration options.
   #   Mongoid.configure do |config|
-  #     name = "mongoid_test"
-  #     host = "localhost"
   #     config.allow_dynamic_fields = false
-  #     config.master = Mongo::Connection.new.db(name)
+  #     config.use(name: "mongoid_test", host: "localhost", port: 27017)
   #   end
   #
   # @return [ Config ] The configuration obejct.
@@ -114,7 +109,14 @@ module Mongoid #:nodoc
   def configure
     block_given? ? yield(Config) : Config
   end
-  alias :config :configure
+
+  def default_session
+    Sessions.default
+  end
+
+  def session(name)
+    Sessions.with_name(name)
+  end
 
   # Take all the public instance methods from the Config singleton and allow
   # them to be accessed through the Mongoid module directly.
@@ -125,5 +127,5 @@ module Mongoid #:nodoc
   # @since 1.0.0
   delegate(*(Config.public_instance_methods(false) +
     ActiveModel::Observing::ClassMethods.public_instance_methods(false) <<
-    { :to => Config }))
+    { to: Config }))
 end
